@@ -1,4 +1,4 @@
-from segment3d.utils import config
+import glob
 from torch.utils.data import Dataset
 import torch
 import numpy as np

@@ -56,5 +56,5 @@ def z_score_normalize(volume, mean, std):
     return (volume - mean) / std
 
 def min_max_normalize(volume):
-    return (volume - np.min(volume)) / (np.max(volume)-np.min(volume))
-config = load_yaml("segment3d/config.yaml")
+    volume = (volume - np.min(volume)) / (np.max(volume)-np.min(volume))
+    return volume

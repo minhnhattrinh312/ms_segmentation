@@ -161,7 +161,7 @@ class SkipNet(nn.Module):
         return output
 
 
-class Segmentor(pl.LightningModule):
+class Segmenter(pl.LightningModule):
     def __init__(self, model, class_weight, num_classes, 
                  learning_rate, factor_lr, patience_lr):
         super().__init__()

@@ -1,0 +1,66 @@
+from yacs.config import CfgNode as CN
+
+cfg = CN()
+cfg.DATA = CN()
+cfg.TRAIN = CN()
+cfg.SYS = CN()
+cfg.OPT = CN()
+cfg.DIRS = CN()
+cfg.PREDICT = CN()
+
+cfg.DATA.NUM_CLASS = 2
+cfg.DATA.CLASS_WEIGHT = [0.01, 1]
+cfg.DATA.PATCH_SIZE = [1, 64, 64, 64]
+cfg.DATA.PATCH_MASK = [1, 64, 64, 64]
+cfg.DATA.DIM_SIZE = 1
+cfg.DATA.EXTRACTION_STEP = [1, 16, 16, 16]
+cfg.DATA.EXTRACTION_STEP_MASK = [1, 16, 16, 16]
+cfg.DATA.CROP_SIZE = [160, 208, 160]
+
+cfg.TRAIN.DISTINCT_SUBJECT = False
+cfg.TRAIN.MASK = "union"
+cfg.TRAIN.BATCH_SIZE = 4
+cfg.TRAIN.EPOCHS = 200
+cfg.TRAIN.NUM_WORKERS = 4
+cfg.TRAIN.PREFETCH_FACTOR = 2
+cfg.TRAIN.FOLD = 7
+cfg.TRAIN.LOAD_CHECKPOINT = False
+cfg.TRAIN.SAVE_TOP_K = 5
+cfg.TRAIN.IDX_CHECKPOINT = -1
+cfg.TRAIN.WANDB = True
+cfg.TRAIN.AUGMENTATION = False
+cfg.TRAIN.NORMALIZE = "z_score"   #"min_max"
+
+cfg.SYS.ACCELERATOR = "gpu"
+cfg.SYS.DEVICES = [0]
+cfg.SYS.MIX_PRECISION = 16
+
+cfg.OPT.LEARNING_RATE = 0.0001
+cfg.OPT.FACTOR_LR = 0.5
+cfg.OPT.PATIENCE_LR = 5
+
+cfg.DIRS.SAVE_DIR = "./weights_segment3d/"
+cfg.DIRS.PREDICT_DIR = "./predict_testset/"
+
+cfg.PREDICT.IDX_CHECKPOINT = -1
+cfg.PREDICT.BATCH_SIZE = 4
+cfg.PREDICT.MIN_SIZE_REMOVE = 15
+
+data_mean_std = CN()
+data_mean_std.MEAN_FLAIR = 14149.058367563766
+data_mean_std.STD_FLAIR = 14855.695311585796
+data_mean_std.MEAN_PD = 61077.52125649335
+data_mean_std.STD_PD = 23486.076974111966
+data_mean_std.MEAN_MPRAGE = 229053.69032183167
+data_mean_std.STD_MPRAGE = 362852.14741107187
+data_mean_std.MEAN_T2 = 22533.463325531
+data_mean_std.STD_T2 = 9121.484986116666
+
+# mean_flair: 0.11590789183216477
+# mean_mprage: 0.0346051664464817
+# mean_pd: 0.2602487427621517
+# mean_t2: 0.23907260426345994
+# std_flair: 0.12169660203072352
+# std_mprage: 0.05481928249652223
+# std_pd: 0.10007318370468368
+# std_t2: 0.09677594335488471
