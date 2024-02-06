@@ -14,7 +14,6 @@ PyYAML
 scikit-image
 scikit-learn
 scipy
-sklearn
 protobuf
 timm
 wandb

@@ -1,0 +1,3 @@
+# exclude data folder and .history folder
+/data/
+/.history/
