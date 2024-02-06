@@ -4,7 +4,7 @@ import os
 import numpy as np
 from tqdm import tqdm
 import sys
-sys.path.insert(0, '/home/nhattm1/test_newcode/')
+sys.path.insert(0, "D:/visual_code/ms_segmentation/")
 from segment2d import *
 # from segment3d import load_yaml, getValidIndex, z_score_normalize, extract_patches, min_max_normalize, cfg, data_mean_std
 import csv
