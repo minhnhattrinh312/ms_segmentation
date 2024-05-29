@@ -2,23 +2,26 @@ import torch
 import numpy as np
 from skimage import measure
 
-def dice_MS(y_true, y_pred, smooth = 1e-5):
+
+def dice_MS(y_true, y_pred, smooth=1e-5):
     output_standard = torch.argmax(y_pred, dim=1, keepdim=True)
     output = torch.where(output_standard == 1, 1, 0)
     label = torch.where(y_true == 1, 1, 0)
 
-    intersection = torch.sum(label * output, dim=[1,2,3,4])
-    union = torch.sum(label, dim=[1,2,3,4]) + torch.sum(output, dim=[1,2,3,4])
-    return torch.mean((2. * intersection + smooth) / (union + smooth), dim=0)
+    intersection = torch.sum(label * output, dim=[1, 2, 3, 4])
+    union = torch.sum(label, dim=[1, 2, 3, 4]) + torch.sum(output, dim=[1, 2, 3, 4])
+    return torch.mean((2.0 * intersection + smooth) / (union + smooth), dim=0)
 
-def dice_MS_volume(y_true, y_pred, smooth = 1e-5):
+
+def dice_MS_volume(y_true, y_pred, smooth=1e-5):
     y_pred = np.where(y_pred == 1, 1, 0)
     y_true = np.where(y_true == 1, 1, 0)
     intersection = np.sum(y_true * y_pred)
-    cardinality  = np.sum(y_true + y_pred)
-    return (2. * intersection + smooth) / (cardinality + smooth)
+    cardinality = np.sum(y_true + y_pred)
+    return (2.0 * intersection + smooth) / (cardinality + smooth)
 
-def seg_metrics(y_true,  y_pred):
+
+def seg_metrics(y_true, y_pred):
     seg_total = np.sum(y_pred)
     truth_total = np.sum(y_true)
     tp = np.sum(y_pred[y_true == 1])

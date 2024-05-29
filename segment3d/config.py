@@ -29,7 +29,7 @@ cfg.TRAIN.SAVE_TOP_K = 5
 cfg.TRAIN.IDX_CHECKPOINT = -1
 cfg.TRAIN.WANDB = True
 cfg.TRAIN.AUGMENTATION = False
-cfg.TRAIN.NORMALIZE = "z_score"   #"min_max"
+cfg.TRAIN.NORMALIZE = "z_score"  # "min_max"
 
 cfg.SYS.ACCELERATOR = "gpu"
 cfg.SYS.DEVICES = [0]
