@@ -188,7 +188,7 @@ class Segmenter(pl.LightningModule):
             return self.validation_step_msseg2008(batch, batch_idx)
         
 
-    def validation_epoch_end(self, validation_step_outputs):
+    def on_validation_epoch_end(self, validation_step_outputs):
         if cfg.TRAIN.TASK == "isbi":
             avg_score = np.stack([x['batch_score_val'] for x in validation_step_outputs]).mean() / 2
             avg_dice = np.stack([x['batch_dice_val'] for x in validation_step_outputs]).mean() / 2
