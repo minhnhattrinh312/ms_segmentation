@@ -51,8 +51,6 @@ if __name__ == "__main__":
         cfg.OPT.FACTOR_LR,
         cfg.OPT.PATIENCE_LR,
     )
-    # torch 2.3 => compile to make faster
-    segmenter = torch.compile(segmenter, mode="max-autotune")
 
     for row in rows:
         name_subject = row["name"]

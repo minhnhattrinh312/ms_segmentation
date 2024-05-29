@@ -34,6 +34,9 @@ class Segmenter(pl.LightningModule):
     ):
         super().__init__()
         self.model = model
+        # torch 2.3 => compile to make faster
+        self.model  = torch.compile(self.model, mode="reduce-overhead")
+        
         self.class_weight = class_weight
         self.num_classes = num_classes
         self.learning_rate = learning_rate
