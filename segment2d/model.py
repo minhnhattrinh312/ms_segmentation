@@ -33,7 +33,7 @@ class Segmenter(pl.LightningModule):
                         data_keys=["input", "mask"]
                         )
         self.test_metric = []
-        
+        self.validation_step_outputs = []
     def on_train_start(self):
         if cfg.TRAIN.LOSS == "active_focal":
             self.training_loss =  ActiveFocalLoss(self.device, self.class_weight, self.num_classes)
@@ -181,33 +181,41 @@ class Segmenter(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         if cfg.TRAIN.TASK == "isbi":
-            return self.validation_step_isbi(batch, batch_idx)
+            pred = self.validation_step_isbi(batch, batch_idx)
+            self.validation_step_outputs.append(pred)
+            return pred
+            
         elif cfg.TRAIN.TASK == "msseg":
-            return self.validation_step_msseg2016(batch, batch_idx)
+            pred = self.validation_step_msseg2016(batch, batch_idx)
+            self.validation_step_outputs.append(pred)
+            return pred
         else:
-            return self.validation_step_msseg2008(batch, batch_idx)
+            pred = self.validation_step_msseg2008(batch, batch_idx)
+            self.validation_step_outputs.append(pred)
+            return pred
         
 
-    def on_validation_epoch_end(self, validation_step_outputs):
+
+    def on_validation_epoch_end(self):
         if cfg.TRAIN.TASK == "isbi":
-            avg_score = np.stack([x['batch_score_val'] for x in validation_step_outputs]).mean() / 2
-            avg_dice = np.stack([x['batch_dice_val'] for x in validation_step_outputs]).mean() / 2
+            avg_score = np.stack([x['batch_score_val'] for x in self.validation_step_outputs]).mean() / 2
+            avg_dice = np.stack([x['batch_dice_val'] for x in self.validation_step_outputs]).mean() / 2
             metrics = {'val_score': avg_score, "val_dice": avg_dice}
         elif cfg.TRAIN.TASK == "msseg":
-            avg_score = np.stack([x['batch_score_val'] for x in validation_step_outputs]).mean()
-            avg_dice = np.stack([x['batch_dice_val'] for x in validation_step_outputs]).mean()
-            avg_ppv = np.stack([x['batch_ppv_val'] for x in validation_step_outputs]).mean()
-            avg_tpr = np.stack([x['batch_tpr_val'] for x in validation_step_outputs]).mean()
-            avg_lfpr = np.stack([x['batch_lfpr_val'] for x in validation_step_outputs]).mean()
-            avg_ltpr = np.stack([x['batch_ltpr_val'] for x in validation_step_outputs]).mean()
-            avg_vd = np.stack([x['batch_vd_val'] for x in validation_step_outputs]).mean()
+            avg_score = np.stack([x['batch_score_val'] for x in self.validation_step_outputs]).mean()
+            avg_dice = np.stack([x['batch_dice_val'] for x in self.validation_step_outputs]).mean()
+            avg_ppv = np.stack([x['batch_ppv_val'] for x in self.validation_step_outputs]).mean()
+            avg_tpr = np.stack([x['batch_tpr_val'] for x in self.validation_step_outputs]).mean()
+            avg_lfpr = np.stack([x['batch_lfpr_val'] for x in self.validation_step_outputs]).mean()
+            avg_ltpr = np.stack([x['batch_ltpr_val'] for x in self.validation_step_outputs]).mean()
+            avg_vd = np.stack([x['batch_vd_val'] for x in self.validation_step_outputs]).mean()
             metrics = {"test_score": avg_score, "test_dice": avg_dice, "test_ppv": avg_ppv,
                         "test_tpr": avg_tpr, "test_lfpr": avg_lfpr, "test_ltpr": avg_ltpr, "test_vd": avg_vd}
         else: # for mseeg2008
-            avg_score = np.stack([x['batch_score_val'] for x in validation_step_outputs]).mean()
-            avg_tpr = np.stack([x['batch_tpr_val'] for x in validation_step_outputs]).mean()
-            avg_fpr = np.stack([x['batch_fpr_val'] for x in validation_step_outputs]).mean()
-            avg_vd = np.stack([x['batch_vd_val'] for x in validation_step_outputs]).mean()
+            avg_score = np.stack([x['batch_score_val'] for x in self.validation_step_outputs]).mean()
+            avg_tpr = np.stack([x['batch_tpr_val'] for x in self.validation_step_outputs]).mean()
+            avg_fpr = np.stack([x['batch_fpr_val'] for x in self.validation_step_outputs]).mean()
+            avg_vd = np.stack([x['batch_vd_val'] for x in self.validation_step_outputs]).mean()
             metrics = {"val_score": avg_score, "val_tpr": avg_tpr, "val_fpr": avg_fpr, "val_vd": avg_vd}
         self.log_dict(metrics, prog_bar = True)
         
@@ -263,7 +271,7 @@ class Segmenter(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = timm.optim.Nadam(self.parameters(), lr=self.learning_rate)
         scheduler = ReduceLROnPlateau(optimizer, mode="max", factor=self.factor_lr, 
-                                    patience=self.patience_lr, verbose=True)
+                                    patience=self.patience_lr)
         if cfg.TRAIN.TASK == "isbi":
             lr_schedulers = {"scheduler": scheduler, "monitor": "val_score","strict": False,}
         elif cfg.TRAIN.TASK == "msseg":

@@ -25,7 +25,7 @@ cfg.DATA.CUT2ORIGIN = [(2, 0, 1), (0, 2, 1), (0, 1, 2)]
 # cfg.DATA.ORIGIN2CUT = [(0, 1, 2)]
 # cfg.DATA.CUT2ORIGIN = [(0, 1, 2)]
 
-cfg.TRAIN.TASK = "msseg2008" # "isbi" or msseg or msseg2008
+cfg.TRAIN.TASK = "isbi" # "isbi" or msseg or msseg2008
 # "active_focal" or "focal_contour" or "active_contour"
 #TverskyLoss,  CrossEntropy, DiceLoss, MSELoss
 cfg.TRAIN.LOSS = "focal_contour" 
@@ -35,7 +35,7 @@ cfg.TRAIN.FREEZE = True
 cfg.TRAIN.EVA_N_EPOCHS = 2
 cfg.TRAIN.BATCH_SIZE = 8
 cfg.TRAIN.EPOCHS = 1000
-cfg.TRAIN.NUM_WORKERS = 8
+cfg.TRAIN.NUM_WORKERS = 2
 cfg.TRAIN.PREFETCH_FACTOR = 4
 cfg.TRAIN.FOLD = 1
 cfg.TRAIN.LOAD_CHECKPOINT = True
@@ -52,7 +52,7 @@ cfg.DATA.DIM_SIZE = 12 if cfg.TRAIN.MODALITIES else 3
 
 cfg.SYS.ACCELERATOR = "gpu"
 cfg.SYS.DEVICES = [0]
-cfg.SYS.MIX_PRECISION = 16 #32 or 16
+cfg.SYS.MIX_PRECISION = "16-mixed" #32 or 16-mixed
 
 cfg.OPT.LEARNING_RATE = 0.0002
 cfg.OPT.FACTOR_LR = 0.5

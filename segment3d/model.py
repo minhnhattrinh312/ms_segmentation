@@ -209,7 +209,7 @@ class Segmenter(pl.LightningModule):
         optimizer = timm.optim.Nadam(self.parameters(), lr=self.learning_rate)
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 
                                                          mode="max", factor=self.factor_lr, 
-                                                         patience=self.patience_lr, verbose =True)
+                                                         patience=self.patience_lr,)
         lr_schedulers = {"scheduler": scheduler, "monitor": "diceVal"}
         # return [optimizer]
         return [optimizer], lr_schedulers
