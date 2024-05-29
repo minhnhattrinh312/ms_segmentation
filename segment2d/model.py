@@ -280,9 +280,9 @@ class Segmenter(pl.LightningModule):
             lr_schedulers = {"scheduler": scheduler, "monitor": "val_score","strict": False,}
         # return [optimizer]
         return [optimizer], lr_schedulers
-    def lr_scheduler_step(self, scheduler, optimizer_idx, metric):
+    def lr_scheduler_step(self, scheduler, metric):
         if self.current_epoch < 100:
             return
         else:
-            super().lr_scheduler_step(scheduler, optimizer_idx, metric)
+            super().lr_scheduler_step(scheduler, metric)
     
