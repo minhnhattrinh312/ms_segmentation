@@ -26,9 +26,7 @@ if __name__ == "__main__":
     for i in range(1, 6):
         cfg.TRAIN.FOLD = i
         print("train on fold", cfg.TRAIN.FOLD)
-        cfg.DIRS.SAVE_DIR = (
-            f"./weights_isbi_{cfg.PREDICT.MODEL}_{cfg.TRAIN.LOSS}/fold{cfg.TRAIN.FOLD}/"
-        )
+        cfg.DIRS.SAVE_DIR = f"./weights_isbi_{cfg.PREDICT.MODEL}_{cfg.TRAIN.LOSS}/fold{cfg.TRAIN.FOLD}/"
         model = smp.UnetPlusPlus(
             encoder_name="resnet50",
             encoder_weights="imagenet",
@@ -38,24 +36,16 @@ if __name__ == "__main__":
         )
         if cfg.TRAIN.PRETRAIN == "pcl":
             print("use self supervised model")
-            model.encoder.load_state_dict(
-                torch.load(cfg.DIRS.PCL.SAVE_RESNET50 + "best_model.pt")
-            )
+            model.encoder.load_state_dict(torch.load(cfg.DIRS.PCL.SAVE_RESNET50 + "best_model.pt"))
         else:
             print("use imagenet pretrained model")
 
-        print(
-            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! load pretrained model !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-        )
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! load pretrained model !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
         # create folder to save checkpoints
         os.makedirs(cfg.DIRS.SAVE_DIR, exist_ok=True)
         # List of subjects in test set
-        list_test_subject = sorted(
-            glob.glob(
-                f"./data/data_isbi_2015/training/*{cfg.TRAIN.FOLD}/preprocessed/*flair*"
-            )
-        )
+        list_test_subject = sorted(glob.glob(f"./data/data_isbi_2015/training/*{cfg.TRAIN.FOLD}/preprocessed/*flair*"))
 
         # List of subjects in the training set
         list_train_subject = []
@@ -146,9 +136,7 @@ if __name__ == "__main__":
         print("Train on fold:", cfg.TRAIN.FOLD)
         print("Use loss:", cfg.TRAIN.LOSS)
         if cfg.TRAIN.FREEZE:
-            print(
-                f"!!!!!!!!!!!!!!!!!!!!!!!! warm up {cfg.TRAIN.EPOCH_WARMUP} epochs!!!!!!!!!!!!!!!!!!!"
-            )
+            print(f"!!!!!!!!!!!!!!!!!!!!!!!! warm up {cfg.TRAIN.EPOCH_WARMUP} epochs!!!!!!!!!!!!!!!!!!!")
             PARAMS_TRAINER = {
                 "accelerator": cfg.SYS.ACCELERATOR,
                 "devices": cfg.SYS.DEVICES,
@@ -191,11 +179,7 @@ if __name__ == "__main__":
         # Initialize a Trainer object with the specified parameters
         trainer = pl.Trainer(**PARAMS_TRAINER)
         # Get a list of file paths for all non-hidden files in the SAVE_DIR directory
-        checkpoint_paths = [
-            cfg.DIRS.SAVE_DIR + f
-            for f in os.listdir(cfg.DIRS.SAVE_DIR)
-            if not f.startswith(".")
-        ]
+        checkpoint_paths = [cfg.DIRS.SAVE_DIR + f for f in os.listdir(cfg.DIRS.SAVE_DIR) if not f.startswith(".")]
         checkpoint_paths.sort()
         # If there are checkpoint paths and the load_checkpoint flag is set to True
         if checkpoint_paths and cfg.TRAIN.LOAD_CHECKPOINT:

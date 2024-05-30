@@ -36,9 +36,7 @@ def pad_background(image, dim2pad=(224, 224, 224)):
     max_indices = np.max(nz, axis=1)
 
     # crop the image to only include non-zero values
-    crop_index = tuple(
-        slice(imin, imax + 1) for imin, imax in zip(min_indices, max_indices)
-    )
+    crop_index = tuple(slice(imin, imax + 1) for imin, imax in zip(min_indices, max_indices))
     cropped_img = image[crop_index]
     padded_image = np.zeros(dim2pad)
 
@@ -73,9 +71,7 @@ def pad_background(image, dim2pad=(224, 224, 224)):
     pad_widths = [(padded_image.shape[i] - cropped_img.shape[i]) // 2 for i in range(3)]
 
     # pad the image with zeros
-    padded_index = tuple(
-        slice(pad_widths[i], pad_widths[i] + cropped_img.shape[i]) for i in range(3)
-    )
+    padded_index = tuple(slice(pad_widths[i], pad_widths[i] + cropped_img.shape[i]) for i in range(3))
     padded_image[padded_index] = cropped_img
 
     return padded_image, crop_index_new, padded_index
@@ -94,9 +90,7 @@ def invert_padding(original_image, padded_image, crop_index, padded_index):
     return inverted_image
 
 
-def pad_background_with_index(
-    image, crop_index_new, padded_index, dim2pad=(256, 256, 256)
-):
+def pad_background_with_index(image, crop_index_new, padded_index, dim2pad=(256, 256, 256)):
     padded_image = np.zeros(dim2pad)
     crop_image = image[crop_index_new]
     padded_image[padded_index] = crop_image

@@ -17,9 +17,7 @@ def extract_patches(arr, patch_shape, extraction_step):
     slices = [slice(None, None, st) for st in extraction_step]
     indexing_strides = arr[tuple(slices)].strides
 
-    patch_indices_shape = (
-        (np.array(arr.shape) - np.array(patch_shape)) // np.array(extraction_step)
-    ) + 1
+    patch_indices_shape = ((np.array(arr.shape) - np.array(patch_shape)) // np.array(extraction_step)) + 1
 
     shape = tuple(list(patch_indices_shape) + list(patch_shape))
     strides = tuple(list(indexing_strides) + list(patch_strides))
@@ -45,12 +43,8 @@ def reconstruct_volume_avg(patches, expected_shape, extraction_step, num_class=2
     count = np.zeros((num_class, v_x, v_y, v_z))
 
     for p, (i, j, k) in zip(patches, product(range(n_x), range(n_y), range(n_z))):
-        vol[
-            :, i * s_x : i * s_x + p_x, j * s_y : j * s_y + p_y, k * s_z : k * s_z + p_z
-        ] += p
-        count[
-            :, i * s_x : i * s_x + p_x, j * s_y : j * s_y + p_y, k * s_z : k * s_z + p_z
-        ] += 1
+        vol[:, i * s_x : i * s_x + p_x, j * s_y : j * s_y + p_y, k * s_z : k * s_z + p_z] += p
+        count[:, i * s_x : i * s_x + p_x, j * s_y : j * s_y + p_y, k * s_z : k * s_z + p_z] += 1
     return vol / count
 
 

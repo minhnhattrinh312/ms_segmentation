@@ -21,9 +21,7 @@ torch.set_float32_matmul_precision("high")
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 model = resnet50(weights=ResNet50_Weights.DEFAULT)
-print(
-    "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! load pretrained model !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-)
+print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! load pretrained model !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
 if cfg.TRAIN.LOAD_CKPT:
     # load checkpoint
@@ -59,16 +57,12 @@ optimizer = Nadam(learner.parameters(), lr=2e-4)
 
 
 # Initialize wandb
-wandb.init(
-    project="pcl", name="resnet_3modalities", id="resnet_3modalities", resume="allow"
-)
+wandb.init(project="pcl", name="resnet_3modalities", id="resnet_3modalities", resume="allow")
 
 
 dataset = BratsLoader(train_path="./data/brats/*npz/*")
 # Define your learning rate scheduler
-scheduler = ReduceLROnPlateau(
-    optimizer, mode="min", patience=10, factor=0.5, verbose=True
-)
+scheduler = ReduceLROnPlateau(optimizer, mode="min", patience=10, factor=0.5, verbose=True)
 
 # Set up some variables to track the training progress
 
@@ -95,9 +89,7 @@ if __name__ == "__main__":
         running_loss = 0
         for images in tqdm(data_loader):
             images = images.to(device).float()
-            loss = learner(
-                images
-            )  # if positive pixel pairs is equal to zero, the loss is equal to the instance level loss
+            loss = learner(images)  # if positive pixel pairs is equal to zero, the loss is equal to the instance level loss
 
             optimizer.zero_grad()
             loss.backward()
@@ -110,9 +102,7 @@ if __name__ == "__main__":
 
             # Print the loss every 100 steps
             if global_step % 1000 == 0:
-                print(
-                    f"Step [{global_step}/{num_epochs*steps_per_epoch}] Loss: {running_loss_1000/1000}"
-                )
+                print(f"Step [{global_step}/{num_epochs*steps_per_epoch}] Loss: {running_loss_1000/1000}")
                 wandb.log(
                     {
                         "Loss": running_loss_1000 / 1000,
@@ -141,11 +131,7 @@ if __name__ == "__main__":
         # Check if the mean loss is the best seen so far
         if mean_loss < best_mean_loss:
             path_best_mean_loss = f"{save_dir}best_model{best_mean_loss:0.4f}.pt"
-            print(
-                "mean loss improved, from {} to {}, saving best model...".format(
-                    best_mean_loss, mean_loss
-                )
-            )
+            print("mean loss improved, from {} to {}, saving best model...".format(best_mean_loss, mean_loss))
             # remove the previous best model
             if os.path.isfile(path_best_mean_loss):
                 os.remove(path_best_mean_loss)
@@ -159,9 +145,7 @@ if __name__ == "__main__":
         scheduler.step(mean_loss)
 
         if early_stopping_counter >= patience_epoch:
-            print(
-                f"Validation Loss has not improved for {patience_epoch} epochs, stopping early..."
-            )
+            print(f"Validation Loss has not improved for {patience_epoch} epochs, stopping early...")
             break
 
     wandb.finish()

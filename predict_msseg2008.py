@@ -97,21 +97,13 @@ class Predict2Folder:
         t1 = min_max_normalize(t1)
         t2 = min_max_normalize(t2)
 
-        padded_flair, crop_index, padded_index = pad_background(
-            flair, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008
-        )
-        padded_t1 = pad_background_with_index(
-            t1, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008
-        )
-        padded_t2 = pad_background_with_index(
-            t2, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008
-        )
+        padded_flair, crop_index, padded_index = pad_background(flair, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008)
+        padded_t1 = pad_background_with_index(t1, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008)
+        padded_t2 = pad_background_with_index(t2, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008)
 
         seg = np.zeros((*cfg.DATA.DIM2PAD_MICCAI2008, self.num_class))
 
-        for transpose_view, convert_view in zip(
-            cfg.DATA.ORIGIN2CUT, cfg.DATA.CUT2ORIGIN
-        ):
+        for transpose_view, convert_view in zip(cfg.DATA.ORIGIN2CUT, cfg.DATA.CUT2ORIGIN):
 
             batch_images = []
             output_cur_view = np.zeros((*cfg.DATA.DIM2PAD_MICCAI2008, self.num_class))
@@ -127,9 +119,7 @@ class Predict2Folder:
                 slices_t2 = transposed_t2[..., i]  # shape (224, 224, 1)
                 slice_inputs = np.stack([slices_t1, slices_flair, slices_t2], axis=-1)
 
-                slices_image = torch.from_numpy(
-                    slice_inputs.transpose(-1, 0, 1)
-                )  # shape (3, 224, 224
+                slices_image = torch.from_numpy(slice_inputs.transpose(-1, 0, 1))  # shape (3, 224, 224
 
                 batch_images.append(slices_image)
 
@@ -137,9 +127,7 @@ class Predict2Folder:
             probability_output = []
 
             if cfg.PREDICT.ENSEMBLE:
-                for checkpoint, weight_ckpt in zip(
-                    self.checkpoint_list, cfg.PREDICT.WEIGHTS
-                ):
+                for checkpoint, weight_ckpt in zip(self.checkpoint_list, cfg.PREDICT.WEIGHTS):
                     self.segmenter = Segmenter(
                         self.model,
                         cfg.DATA.CLASS_WEIGHT,
@@ -159,33 +147,19 @@ class Predict2Folder:
                     )
                     self.segmenter = self.segmenter.to(self.device)
                     self.segmenter.eval()
-                    y_pred = self.predict_patches(
-                        batch_images
-                    )  # shape (n, 2, 224, 224)
+                    y_pred = self.predict_patches(batch_images)  # shape (n, 2, 224, 224)
                     probability_output.append(y_pred * weight_ckpt)
 
-                probability_output = np.stack(
-                    probability_output, axis=0
-                )  # shape (num_fold, n, 2, 224, 224)
-                probability_output = np.sum(
-                    probability_output, axis=0
-                )  # shape (n, 2, 224, 224)
+                probability_output = np.stack(probability_output, axis=0)  # shape (num_fold, n, 2, 224, 224)
+                probability_output = np.sum(probability_output, axis=0)  # shape (n, 2, 224, 224)
 
             else:
-                probability_output = self.predict_patches(
-                    batch_images
-                )  # shape (n, 2, 224, 224)
-            probability_output = probability_output.transpose(
-                2, 3, 0, 1
-            )  # shape (224, 224, n, 2)
-            output_cur_view = (
-                probability_output  # output_cur_view has shape (224, 224, 224, 2)
-            )
+                probability_output = self.predict_patches(batch_images)  # shape (n, 2, 224, 224)
+            probability_output = probability_output.transpose(2, 3, 0, 1)  # shape (224, 224, n, 2)
+            output_cur_view = probability_output  # output_cur_view has shape (224, 224, 224, 2)
             convert_view = convert_view + (-1,)
 
-            output_cur_view_trans = np.transpose(
-                output_cur_view, convert_view
-            )  # convert to original view
+            output_cur_view_trans = np.transpose(output_cur_view, convert_view)  # convert to original view
             seg += output_cur_view_trans
 
         seg = np.argmax(seg, axis=-1).astype(np.uint8)
@@ -220,17 +194,13 @@ class Predict2Folder:
                     # write sitk.image from seg numpy array
                     sitk_image = sitk.GetImageFromArray(seg)
                     sitk_image.CopyInformation(flair)
-                    sitk.WriteImage(
-                        sitk_image, f"{save_dir}{id_subject}_segmentation.nrrd"
-                    )
+                    sitk.WriteImage(sitk_image, f"{save_dir}{id_subject}_segmentation.nrrd")
 
                 if self.zip:
                     id_weight = checkpoint.split("/")[-1].replace(".ckpt", "")
                     name_archive = self.name_archive + f"_{id_weight}"
                     print(f"the results are zipped to: {name_archive}.zip")
-                    shutil.make_archive(
-                        name_archive, "zip", "/home/nhattm1/test_newcode", "nhatvinbig"
-                    )
+                    shutil.make_archive(name_archive, "zip", "/home/nhattm1/test_newcode", "nhatvinbig")
 
         else:
 
@@ -257,9 +227,7 @@ if __name__ == "__main__":
 
     list_file_flair = sorted(glob.glob("data/msseg-2008-testing-nii/*/*FLAIR*"))
 
-    model = FCDenseNet(
-        in_channels=cfg.DATA.INDIM_MODEL_MICCAI2008, n_classes=cfg.DATA.NUM_CLASS
-    )
+    model = FCDenseNet(in_channels=cfg.DATA.INDIM_MODEL_MICCAI2008, n_classes=cfg.DATA.NUM_CLASS)
 
     # create folder to save checkpoints
     os.makedirs(cfg.DIRS.PREDICT_DIR, exist_ok=True)
@@ -270,18 +238,14 @@ if __name__ == "__main__":
 
     if cfg.PREDICT.ENSEMBLE:
         name_zip = cfg.PREDICT.NAME_ZIP
-        checkpoint_list = [
-            sorted(glob.glob(path_fold + "*.ckpt"))[-1] for path_fold in path_folds
-        ]
+        checkpoint_list = [sorted(glob.glob(path_fold + "*.ckpt"))[-1] for path_fold in path_folds]
         # remove fold 2 from the list
         # checkpoint_list = [checkpoint for checkpoint in checkpoint_list if "fold3" not in checkpoint]
         # checkpoint_list = [checkpoint for checkpoint in checkpoint_list if "fold3" not in checkpoint]
         # checkpoint_list = [checkpoint for checkpoint in checkpoint_list if "fold1" not in checkpoint]
     else:
         name_zip = cfg.PREDICT.MODEL + str(cfg.TRAIN.FOLD)
-        checkpoint_list = sorted(
-            glob.glob(f"{cfg.DIRS.SAVE_DIR}fold{cfg.TRAIN.FOLD}/*.ckpt")
-        )
+        checkpoint_list = sorted(glob.glob(f"{cfg.DIRS.SAVE_DIR}fold{cfg.TRAIN.FOLD}/*.ckpt"))
         # print(checkpoint_list)
 
     # Load checkpoint

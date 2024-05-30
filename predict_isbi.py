@@ -121,27 +121,17 @@ class Predict2Folder:
         # Access the first two elements in the list (index 0 and 1)
         id = parts[0] + "_" + parts[1]
 
-        padded_flair, crop_index, padded_index = pad_background(
-            flair, dim2pad=cfg.DATA.DIM2PAD_ISBI
-        )
-        padded_t1 = pad_background_with_index(
-            t1, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_ISBI
-        )
-        padded_pd = pad_background_with_index(
-            pd, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_ISBI
-        )
-        padded_t2 = pad_background_with_index(
-            t2, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_ISBI
-        )
+        padded_flair, crop_index, padded_index = pad_background(flair, dim2pad=cfg.DATA.DIM2PAD_ISBI)
+        padded_t1 = pad_background_with_index(t1, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_ISBI)
+        padded_pd = pad_background_with_index(pd, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_ISBI)
+        padded_t2 = pad_background_with_index(t2, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_ISBI)
 
         seg = np.zeros((*cfg.DATA.DIM2PAD_ISBI, self.num_class))
         # seg = np.zeros(cfg.DATA.DIM2PAD_ISBI)
 
         view = 0
 
-        for transpose_view, convert_view in zip(
-            cfg.DATA.ORIGIN2CUT, cfg.DATA.CUT2ORIGIN
-        ):
+        for transpose_view, convert_view in zip(cfg.DATA.ORIGIN2CUT, cfg.DATA.CUT2ORIGIN):
 
             batch_images = []
             output_cur_view = np.zeros((*cfg.DATA.DIM2PAD_ISBI, self.num_class))
@@ -157,13 +147,9 @@ class Predict2Folder:
                 slices_t1 = transposed_t1[..., i]  # shape (224, 224, 1)
                 slices_t2 = transposed_t2[..., i]  # shape (224, 224, 1)
                 slices_pd = transposed_pd[..., i]  # shape (224, 224, 1)
-                slice_inputs = np.stack(
-                    [slices_t1, slices_flair, slices_t2, slices_pd], axis=-1
-                )
+                slice_inputs = np.stack([slices_t1, slices_flair, slices_t2, slices_pd], axis=-1)
 
-                slices_image = torch.from_numpy(
-                    slice_inputs.transpose(-1, 0, 1)
-                )  # shape (3, 224, 224
+                slices_image = torch.from_numpy(slice_inputs.transpose(-1, 0, 1))  # shape (3, 224, 224
 
                 batch_images.append(slices_image)
 
@@ -171,9 +157,7 @@ class Predict2Folder:
             probability_output = []
 
             if cfg.PREDICT.ENSEMBLE:
-                for checkpoint, weight_ckpt in zip(
-                    self.checkpoint_list, cfg.PREDICT.WEIGHTS
-                ):
+                for checkpoint, weight_ckpt in zip(self.checkpoint_list, cfg.PREDICT.WEIGHTS):
                     self.segmenter = Segmenter(
                         self.model,
                         cfg.DATA.CLASS_WEIGHT,
@@ -193,33 +177,19 @@ class Predict2Folder:
                     )
                     self.segmenter = self.segmenter.to(self.device)
                     self.segmenter.eval()
-                    y_pred = self.predict_patches(
-                        batch_images
-                    )  # shape (n, 2, 224, 224)
+                    y_pred = self.predict_patches(batch_images)  # shape (n, 2, 224, 224)
                     probability_output.append(y_pred * weight_ckpt)
 
-                probability_output = np.stack(
-                    probability_output, axis=0
-                )  # shape (num_fold, n, 2, 224, 224)
-                probability_output = np.sum(
-                    probability_output, axis=0
-                )  # shape (n, 2, 224, 224)
+                probability_output = np.stack(probability_output, axis=0)  # shape (num_fold, n, 2, 224, 224)
+                probability_output = np.sum(probability_output, axis=0)  # shape (n, 2, 224, 224)
 
             else:
-                probability_output = self.predict_patches(
-                    batch_images
-                )  # shape (n, 2, 224, 224)
-            probability_output = probability_output.transpose(
-                2, 3, 0, 1
-            )  # shape (224, 224, n, 2)
-            output_cur_view = (
-                probability_output  # output_cur_view has shape (224, 224, 224, 2)
-            )
+                probability_output = self.predict_patches(batch_images)  # shape (n, 2, 224, 224)
+            probability_output = probability_output.transpose(2, 3, 0, 1)  # shape (224, 224, n, 2)
+            output_cur_view = probability_output  # output_cur_view has shape (224, 224, 224, 2)
             convert_view = convert_view + (-1,)
 
-            output_cur_view_trans = np.transpose(
-                output_cur_view, convert_view
-            )  # convert to original view
+            output_cur_view_trans = np.transpose(output_cur_view, convert_view)  # convert to original view
             seg += output_cur_view_trans
 
             if self.mask_exist:
@@ -271,16 +241,8 @@ class Predict2Folder:
                     nib.save(img, f"{save_dir}{id}_{self.team_name}.nii")
 
                     if self.mask_exist:
-                        mask1 = nib.load(
-                            path_flair.replace("flair_pp", "mask1").replace(
-                                "preprocessed", "masks"
-                            )
-                        ).get_fdata()
-                        mask2 = nib.load(
-                            path_flair.replace("flair_pp", "mask2").replace(
-                                "preprocessed", "masks"
-                            )
-                        ).get_fdata()
+                        mask1 = nib.load(path_flair.replace("flair_pp", "mask1").replace("preprocessed", "masks")).get_fdata()
+                        mask2 = nib.load(path_flair.replace("flair_pp", "mask2").replace("preprocessed", "masks")).get_fdata()
                         mask = np.logical_or(mask1, mask2).astype(np.int64)
 
                         row = {
@@ -343,13 +305,9 @@ if __name__ == "__main__":
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     # files to predict
     if not cfg.PREDICT.MASK_EXIST:
-        list_file_flair = sorted(
-            glob.glob("data/data_isbi_2015/testdata_website/*/preprocessed/*flair*")
-        )
+        list_file_flair = sorted(glob.glob("data/data_isbi_2015/testdata_website/*/preprocessed/*flair*"))
     else:
-        list_file_flair = sorted(
-            glob.glob("data/data_isbi_2015/training/*/preprocessed/*flair*")
-        )
+        list_file_flair = sorted(glob.glob("data/data_isbi_2015/training/*/preprocessed/*flair*"))
     # define model
     if cfg.PREDICT.MODEL == "convnext":
         print("Use ConvNext")
@@ -364,9 +322,7 @@ if __name__ == "__main__":
             activation="softmax2d",
         )
     elif cfg.PREDICT.MODEL == "tiramisu":
-        model = FCDenseNet(
-            in_channels=cfg.DATA.INDIM_MODEL, n_classes=cfg.DATA.NUM_CLASS
-        )
+        model = FCDenseNet(in_channels=cfg.DATA.INDIM_MODEL, n_classes=cfg.DATA.NUM_CLASS)
     else:
         print("no model is loaded!!!!!!!!!!!")
     # create folder to save checkpoints
@@ -377,9 +333,7 @@ if __name__ == "__main__":
     path_folds = sorted(glob.glob(cfg.DIRS.SAVE_DIR[:-2] + "*/"))
     if cfg.PREDICT.ENSEMBLE:
         name_zip = cfg.PREDICT.NAME_ZIP
-        checkpoint_list = [
-            sorted(glob.glob(path_fold + "*.ckpt"))[-1] for path_fold in path_folds
-        ]
+        checkpoint_list = [sorted(glob.glob(path_fold + "*.ckpt"))[-1] for path_fold in path_folds]
         # remove fold 2 from the list
         # checkpoint_list = [checkpoint for checkpoint in checkpoint_list if "fold3" not in checkpoint]
         # checkpoint_list = [checkpoint for checkpoint in checkpoint_list if "fold3" not in checkpoint]

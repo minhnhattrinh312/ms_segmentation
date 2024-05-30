@@ -28,22 +28,16 @@ if __name__ == "__main__":
     )
     if cfg.TRAIN.PRETRAIN == "pcl":
         print("use self supervised model")
-        model.encoder.load_state_dict(
-            torch.load(cfg.DIRS.PCL.SAVE_RESNET50 + "best_model.pt")
-        )
+        model.encoder.load_state_dict(torch.load(cfg.DIRS.PCL.SAVE_RESNET50 + "best_model.pt"))
     else:
         print("use imagenet pretrained model")
 
-    print(
-        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! load pretrained model !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    )
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! load pretrained model !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
     # create folder to save checkpoints
     os.makedirs(cfg.DIRS.SAVE_DIR, exist_ok=True)
     # List of subjects in test set
-    list_test_subject = sorted(
-        glob.glob(f"data/MSSEG-Testing/Center*/*/Preprocessed_Data/*FLAIR*")
-    )
+    list_test_subject = sorted(glob.glob(f"data/MSSEG-Testing/Center*/*/Preprocessed_Data/*FLAIR*"))
 
     # List of subjects in the training set
     list_train_subject = sorted(glob.glob("data/msseg2016npz/*"))
@@ -129,11 +123,7 @@ if __name__ == "__main__":
     # Initialize a Trainer object with the specified parameters
     trainer = pl.Trainer(**PARAMS_TRAINER)
     # Get a list of file paths for all non-hidden files in the SAVE_DIR directory
-    checkpoint_paths = [
-        cfg.DIRS.SAVE_DIR + f
-        for f in os.listdir(cfg.DIRS.SAVE_DIR)
-        if not f.startswith(".")
-    ]
+    checkpoint_paths = [cfg.DIRS.SAVE_DIR + f for f in os.listdir(cfg.DIRS.SAVE_DIR) if not f.startswith(".")]
     checkpoint_paths.sort()
     # If there are checkpoint paths and the load_checkpoint flag is set to True
     if checkpoint_paths and cfg.TRAIN.LOAD_CHECKPOINT:

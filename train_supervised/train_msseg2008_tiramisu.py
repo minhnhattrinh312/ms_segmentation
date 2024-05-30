@@ -27,12 +27,8 @@ if __name__ == "__main__":
     for i in range(4, 6):
         cfg.TRAIN.FOLD = i
         print("train on fold", cfg.TRAIN.FOLD)
-        cfg.DIRS.SAVE_DIR = (
-            f"./weights_msseg2008_{cfg.PREDICT.MODEL}/fold{cfg.TRAIN.FOLD}/"
-        )
-        model = FCDenseNet(
-            in_channels=cfg.DATA.INDIM_MODEL_MICCAI2008, n_classes=cfg.DATA.NUM_CLASS
-        )
+        cfg.DIRS.SAVE_DIR = f"./weights_msseg2008_{cfg.PREDICT.MODEL}/fold{cfg.TRAIN.FOLD}/"
+        model = FCDenseNet(in_channels=cfg.DATA.INDIM_MODEL_MICCAI2008, n_classes=cfg.DATA.NUM_CLASS)
 
         # create folder to save checkpoints
         os.makedirs(cfg.DIRS.SAVE_DIR, exist_ok=True)
@@ -56,10 +52,7 @@ if __name__ == "__main__":
             elif name_subject not in ids_for_test:
                 ids_for_test.append(name_subject)
         print("ids_for_test:", ids_for_test)
-        list_test_subject = [
-            f"{subjects_nii_dir}{name_subject}/{name_subject}_{name_flair}"
-            for name_subject in ids_for_test
-        ]
+        list_test_subject = [f"{subjects_nii_dir}{name_subject}/{name_subject}_{name_flair}" for name_subject in ids_for_test]
         # Create a ISBILoader object for the training data using the list_train_subject variable and the defined augmentations
         train_data = MSSEGLoader(list_subject=list_train_subject)
 
@@ -150,11 +143,7 @@ if __name__ == "__main__":
         # Initialize a Trainer object with the specified parameters
         trainer = pl.Trainer(**PARAMS_TRAINER)
         # Get a list of file paths for all non-hidden files in the SAVE_DIR directory
-        checkpoint_paths = [
-            cfg.DIRS.SAVE_DIR + f
-            for f in os.listdir(cfg.DIRS.SAVE_DIR)
-            if not f.startswith(".")
-        ]
+        checkpoint_paths = [cfg.DIRS.SAVE_DIR + f for f in os.listdir(cfg.DIRS.SAVE_DIR) if not f.startswith(".")]
         checkpoint_paths.sort()
         # If there are checkpoint paths and the load_checkpoint flag is set to True
         if checkpoint_paths and cfg.TRAIN.LOAD_CHECKPOINT:

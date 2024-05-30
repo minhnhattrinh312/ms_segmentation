@@ -19,9 +19,7 @@ import csv
 import random
 
 
-def extract2d_data2npz(
-    list_file_flair, cfg, distinct_subject=False, save_path="./data_np/"
-):
+def extract2d_data2npz(list_file_flair, cfg, distinct_subject=False, save_path="./data_np/"):
     os.makedirs(save_path, exist_ok=True)
     rows = []
     num_fold = 5
@@ -55,31 +53,15 @@ def extract2d_data2npz(
         dp = min_max_normalize(dp)
         gado = min_max_normalize(gado)
 
-        consensus = nib.load(
-            path_flair.replace("Preprocessed_Data", "Masks").replace(
-                "FLAIR_preprocessed", "Consensus"
-            )
-        )
+        consensus = nib.load(path_flair.replace("Preprocessed_Data", "Masks").replace("FLAIR_preprocessed", "Consensus"))
         consensus = consensus.get_fdata().astype(np.uint8)
 
-        padded_flair, crop_index, padded_index = pad_background(
-            flair, dim2pad=cfg.DATA.DIM2PAD_MICCAI
-        )
-        padded_t1 = pad_background_with_index(
-            t1, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI
-        )
-        padded_dp = pad_background_with_index(
-            dp, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI
-        )
-        padded_t2 = pad_background_with_index(
-            t2, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI
-        )
-        padded_gado = pad_background_with_index(
-            gado, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI
-        )
-        padded_consensus = pad_background_with_index(
-            consensus, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI
-        )
+        padded_flair, crop_index, padded_index = pad_background(flair, dim2pad=cfg.DATA.DIM2PAD_MICCAI)
+        padded_t1 = pad_background_with_index(t1, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI)
+        padded_dp = pad_background_with_index(dp, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI)
+        padded_t2 = pad_background_with_index(t2, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI)
+        padded_gado = pad_background_with_index(gado, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI)
+        padded_consensus = pad_background_with_index(consensus, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI)
 
         padded_masks = [padded_consensus]
 
@@ -94,9 +76,7 @@ def extract2d_data2npz(
             transposed_t2 = np.transpose(padded_t2, transpose_view)
             transposed_dp = np.transpose(padded_dp, transpose_view)
             transposed_gado = np.transpose(padded_gado, transpose_view)
-            transposed_masks = [
-                np.transpose(mask, transpose_view) for mask in padded_masks
-            ]
+            transposed_masks = [np.transpose(mask, transpose_view) for mask in padded_masks]
 
             for i in range(transposed_flair.shape[-1]):
                 slices_flair = transposed_flair[..., i]  # shape (224, 224, 1)
@@ -112,9 +92,7 @@ def extract2d_data2npz(
                     slices_mask = transposed_mask[..., i]  # shape (224, 224)
                     if np.count_nonzero(slices_mask) >= 2:
                         name_subject = f"mri{count_subject}_{view}_{i}_mask{mask_id}"
-                        rows.append(
-                            {"subject": "id", "name": name_subject, "fold": fold}
-                        )
+                        rows.append({"subject": "id", "name": name_subject, "fold": fold})
                         np.savez_compressed(
                             f"{save_path}{name_subject}",
                             flair=slice_inputs.astype(np.float32),
@@ -129,20 +107,14 @@ def extract2d_data2npz(
     print("ratio: ", np.sum(num_non_zero_list) / np.sum(num_zero_list))
 
     with open(f"subject_msseg2016.csv", "w", newline="") as csvfile:
-        writer = csv.DictWriter(
-            csvfile, fieldnames=["subject", "name", "fold"], lineterminator="\n"
-        )
+        writer = csv.DictWriter(csvfile, fieldnames=["subject", "name", "fold"], lineterminator="\n")
         writer.writeheader()
         # Write the new id and score to the  file
         writer.writerows(rows)
 
 
 if __name__ == "__main__":
-    list_file_flair = sorted(
-        glob.glob(
-            f"data/MSSEG-Training_2016/Training/Center*/*/Preprocessed_Data/*FLAIR*"
-        )
-    )
+    list_file_flair = sorted(glob.glob(f"data/MSSEG-Training_2016/Training/Center*/*/Preprocessed_Data/*FLAIR*"))
 
     extract2d_data2npz(
         list_file_flair,

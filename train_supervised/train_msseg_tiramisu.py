@@ -18,15 +18,11 @@ torch.set_float32_matmul_precision("high")
 
 # Main function
 if __name__ == "__main__":
-    model = FCDenseNet(
-        in_channels=cfg.DATA.INDIM_MODEL_MICCAI, n_classes=cfg.DATA.NUM_CLASS
-    )
+    model = FCDenseNet(in_channels=cfg.DATA.INDIM_MODEL_MICCAI, n_classes=cfg.DATA.NUM_CLASS)
     # create folder to save checkpoints
     os.makedirs(cfg.DIRS.SAVE_DIR, exist_ok=True)
     # List of subjects in test set
-    list_test_subject = sorted(
-        glob.glob(f"data/MSSEG-Testing/Center*/*/Preprocessed_Data/*FLAIR*")
-    )
+    list_test_subject = sorted(glob.glob(f"data/MSSEG-Testing/Center*/*/Preprocessed_Data/*FLAIR*"))
 
     # List of subjects in the training set
     list_train_subject = sorted(glob.glob("data/msseg2016npz/*"))
@@ -111,11 +107,7 @@ if __name__ == "__main__":
     # Initialize a Trainer object with the specified parameters
     trainer = pl.Trainer(**PARAMS_TRAINER)
     # Get a list of file paths for all non-hidden files in the SAVE_DIR directory
-    checkpoint_paths = [
-        cfg.DIRS.SAVE_DIR + f
-        for f in os.listdir(cfg.DIRS.SAVE_DIR)
-        if not f.startswith(".")
-    ]
+    checkpoint_paths = [cfg.DIRS.SAVE_DIR + f for f in os.listdir(cfg.DIRS.SAVE_DIR) if not f.startswith(".")]
     checkpoint_paths.sort()
     # If there are checkpoint paths and the load_checkpoint flag is set to True
     if checkpoint_paths and cfg.TRAIN.LOAD_CHECKPOINT:

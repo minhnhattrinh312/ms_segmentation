@@ -40,15 +40,11 @@ def extract_brats2npz(list_file_flair, cfg, save_path="./data_np/"):
                 slices_flair = transposed_flair[..., i]  # shape (224, 224, 1)
                 slices_t1 = transposed_t1[..., i]  # shape (224, 224, 1)
                 slices_t2 = transposed_t2[..., i]  # shape (224, 224, 1)
-                slice_inputs = np.stack(
-                    [slices_t1, slices_flair, slices_t2], axis=-1
-                )  # shape (224, 224, 3)
+                slice_inputs = np.stack([slices_t1, slices_flair, slices_t2], axis=-1)  # shape (224, 224, 3)
 
                 if np.count_nonzero(slices_flair) >= 2:
                     name_subject = f"brats{count_subject}_{view}_{i}"
-                    np.savez_compressed(
-                        f"{save_path}{name_subject}", MRimages=slice_inputs
-                    )
+                    np.savez_compressed(f"{save_path}{name_subject}", MRimages=slice_inputs)
                 else:
                     useless += 1
 

@@ -52,29 +52,17 @@ def extract2d_data2npz(list_file_flair, cfg, save_path="./data_np/"):
         mask1 = nib.load(path_flair.replace("FLAIR_brain_bias_correction", "lesion"))
         mask1 = mask1.get_fdata().astype(np.uint8)
 
-        padded_flair, crop_index, padded_index = pad_background(
-            flair, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008
-        )
-        padded_t1 = pad_background_with_index(
-            t1, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008
-        )
-        padded_t2 = pad_background_with_index(
-            t2, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008
-        )
-        padded_mask1 = pad_background_with_index(
-            mask1, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008
-        )
+        padded_flair, crop_index, padded_index = pad_background(flair, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008)
+        padded_t1 = pad_background_with_index(t1, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008)
+        padded_t2 = pad_background_with_index(t2, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008)
+        padded_mask1 = pad_background_with_index(mask1, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008)
 
         padded_masks = [padded_mask1]
 
         if "UNC" in path_flair:
-            mask2 = nib.load(
-                path_flair.replace("FLAIR_brain_bias_correction", "lesion_byCHB")
-            )
+            mask2 = nib.load(path_flair.replace("FLAIR_brain_bias_correction", "lesion_byCHB"))
             mask2 = mask2.get_fdata().astype(np.uint8)
-            padded_mask2 = pad_background_with_index(
-                mask2, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008
-            )
+            padded_mask2 = pad_background_with_index(mask2, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008)
             padded_masks = [padded_mask1, padded_mask2]
 
         for padded_mask in padded_masks:
@@ -86,24 +74,18 @@ def extract2d_data2npz(list_file_flair, cfg, save_path="./data_np/"):
             transposed_flair = np.transpose(padded_flair, transpose_view)
             transposed_t1 = np.transpose(padded_t1, transpose_view)
             transposed_t2 = np.transpose(padded_t2, transpose_view)
-            transposed_masks = [
-                np.transpose(mask, transpose_view) for mask in padded_masks
-            ]
+            transposed_masks = [np.transpose(mask, transpose_view) for mask in padded_masks]
 
             for i in range(transposed_flair.shape[-1]):
                 slices_flair = transposed_flair[..., i]  # shape (224, 224, 1)
                 slices_t1 = transposed_t1[..., i]  # shape (224, 224, 1)
                 slices_t2 = transposed_t2[..., i]  # shape (224, 224, 1)
-                slice_inputs = np.stack(
-                    [slices_t1, slices_flair, slices_t2], axis=-1
-                )  # shape (224, 224, 4)
+                slice_inputs = np.stack([slices_t1, slices_flair, slices_t2], axis=-1)  # shape (224, 224, 4)
                 for mask_id, transposed_mask in enumerate(transposed_masks, 1):
                     slices_mask = transposed_mask[..., i]  # shape (224, 224)
                     if np.count_nonzero(slices_mask) >= 2:
                         name_subject = f"mri{count_subject}_{view}_{i}_mask{mask_id}"
-                        rows.append(
-                            {"subject": id_subject, "name": name_subject, "fold": fold}
-                        )
+                        rows.append({"subject": id_subject, "name": name_subject, "fold": fold})
                         np.savez_compressed(
                             f"{save_path}{name_subject}",
                             flair=slice_inputs.astype(np.float32),
@@ -118,9 +100,7 @@ def extract2d_data2npz(list_file_flair, cfg, save_path="./data_np/"):
     print("ratio: ", np.sum(num_non_zero_list) / np.sum(num_zero_list))
 
     with open(f"subject_msseg2008.csv", "w", newline="") as csvfile:
-        writer = csv.DictWriter(
-            csvfile, fieldnames=["subject", "name", "fold"], lineterminator="\n"
-        )
+        writer = csv.DictWriter(csvfile, fieldnames=["subject", "name", "fold"], lineterminator="\n")
         writer.writeheader()
         # Write the new id and score to the  file
         writer.writerows(rows)

@@ -57,9 +57,7 @@ for sub_data in datasets:
     for image in tqdm(file_list):
         (folder, file) = image
         if "T2" in file or "FLAIR" in file:
-            t1 = nib.load(
-                f"data/msseg-2008-{sub_data}-nii/{folder}/{folder}_T1_brain.nii.gz"
-            ).get_fdata()
+            t1 = nib.load(f"data/msseg-2008-{sub_data}-nii/{folder}/{folder}_T1_brain.nii.gz").get_fdata()
             t2 = nib.load(f"data/msseg-2008-{sub_data}-nii/{folder}/{file}.nii.gz")
             t2_numpy = t2.get_fdata()
             t2_numpy = np.where(t1 > 0, t2_numpy, 0)
@@ -69,15 +67,11 @@ for sub_data in datasets:
                 f"data/msseg-2008-{sub_data}-nii/{folder}/{file}_brain.nii.gz",
             )
 
-    print(
-        f"correct bias field and save to folder {sub_data} with _brain_bias_correction.nii.gz ..."
-    )
+    print(f"correct bias field and save to folder {sub_data} with _brain_bias_correction.nii.gz ...")
     for image in tqdm(file_list):
         (folder, file) = image
         if "lesion" not in file:
-            img = ants.image_read(
-                f"data/msseg-2008-{sub_data}-nii/{folder}/{file}_brain.nii.gz"
-            )
+            img = ants.image_read(f"data/msseg-2008-{sub_data}-nii/{folder}/{file}_brain.nii.gz")
             image_n4 = ants.n4_bias_field_correction(img)
             ants.image_write(
                 image_n4,

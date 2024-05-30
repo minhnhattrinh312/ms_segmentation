@@ -72,34 +72,18 @@ class ISBI_Test_Loader(Dataset):
         pd = min_max_normalize(pd)
         t2 = min_max_normalize(t2)
 
-        mask1 = nib.load(
-            path_flair.replace("flair_pp", "mask1").replace("preprocessed", "masks")
-        )
-        mask2 = nib.load(
-            path_flair.replace("flair_pp", "mask2").replace("preprocessed", "masks")
-        )
+        mask1 = nib.load(path_flair.replace("flair_pp", "mask1").replace("preprocessed", "masks"))
+        mask2 = nib.load(path_flair.replace("flair_pp", "mask2").replace("preprocessed", "masks"))
 
         mask1 = mask1.get_fdata().astype(np.uint8)
         mask2 = mask2.get_fdata().astype(np.uint8)
 
-        padded_flair, crop_index, padded_index = pad_background(
-            flair, dim2pad=cfg.DATA.DIM2PAD_ISBI
-        )
-        padded_t1 = pad_background_with_index(
-            t1, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_ISBI
-        )
-        padded_pd = pad_background_with_index(
-            pd, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_ISBI
-        )
-        padded_t2 = pad_background_with_index(
-            t2, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_ISBI
-        )
-        padded_mask1 = pad_background_with_index(
-            mask1, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_ISBI
-        )
-        padded_mask2 = pad_background_with_index(
-            mask2, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_ISBI
-        )
+        padded_flair, crop_index, padded_index = pad_background(flair, dim2pad=cfg.DATA.DIM2PAD_ISBI)
+        padded_t1 = pad_background_with_index(t1, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_ISBI)
+        padded_pd = pad_background_with_index(pd, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_ISBI)
+        padded_t2 = pad_background_with_index(t2, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_ISBI)
+        padded_mask1 = pad_background_with_index(mask1, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_ISBI)
+        padded_mask2 = pad_background_with_index(mask2, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_ISBI)
 
         data["mask1"] = padded_mask1.astype(np.int64)
         data["mask2"] = padded_mask2.astype(np.int64)
@@ -119,12 +103,8 @@ class ISBI_Test_Loader(Dataset):
                 slices_t2 = transposed_t2[..., i]  # shape (224, 224, 3)
                 slices_pd = transposed_pd[..., i]  # shape (224, 224, 3)
 
-                slice_inputs = np.stack(
-                    [slices_t1, slices_flair, slices_t2, slices_pd], axis=-1
-                )  # shape (224, 224, 4)
-                slices_image = torch.from_numpy(
-                    slice_inputs.transpose(-1, 0, 1)
-                )  # shape (3, 224, 224)
+                slice_inputs = np.stack([slices_t1, slices_flair, slices_t2, slices_pd], axis=-1)  # shape (224, 224, 4)
+                slices_image = torch.from_numpy(slice_inputs.transpose(-1, 0, 1))  # shape (3, 224, 224)
 
                 batch_images.append(slices_image)
 
@@ -159,28 +139,14 @@ class MSSEG_Test_Loader(Dataset):
         dp = min_max_normalize(dp)
         gado = min_max_normalize(gado)
 
-        consensus = nib.load(
-            path_flair.replace("Preprocessed_Data", "Masks").replace(
-                "FLAIR_preprocessed", "Consensus"
-            )
-        )
+        consensus = nib.load(path_flair.replace("Preprocessed_Data", "Masks").replace("FLAIR_preprocessed", "Consensus"))
         consensus = consensus.get_fdata().astype(np.uint64)
 
-        padded_flair, crop_index, padded_index = pad_background(
-            flair, dim2pad=cfg.DATA.DIM2PAD_MICCAI
-        )
-        padded_t1 = pad_background_with_index(
-            t1, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI
-        )
-        padded_dp = pad_background_with_index(
-            dp, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI
-        )
-        padded_t2 = pad_background_with_index(
-            t2, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI
-        )
-        padded_gado = pad_background_with_index(
-            gado, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI
-        )
+        padded_flair, crop_index, padded_index = pad_background(flair, dim2pad=cfg.DATA.DIM2PAD_MICCAI)
+        padded_t1 = pad_background_with_index(t1, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI)
+        padded_dp = pad_background_with_index(dp, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI)
+        padded_t2 = pad_background_with_index(t2, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI)
+        padded_gado = pad_background_with_index(gado, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI)
         # padded_consensus = pad_background_with_index(consensus, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI)
 
         # data["padded_consensus"] = padded_consensus.astype(np.int64)
@@ -209,9 +175,7 @@ class MSSEG_Test_Loader(Dataset):
                     axis=-1,
                 )  # shape (224, 224, 4)
 
-                slices_image = torch.from_numpy(
-                    slice_inputs.transpose(-1, 0, 1)
-                )  # shape (5, 256, 256)
+                slices_image = torch.from_numpy(slice_inputs.transpose(-1, 0, 1))  # shape (5, 256, 256)
 
                 batch_images.append(slices_image)
 
@@ -245,26 +209,14 @@ class MSSEG2008_Test_Loader(Dataset):
         mask1 = nib.load(path_flair.replace("FLAIR_brain_bias_correction", "lesion"))
         mask1 = mask1.get_fdata().astype(np.uint8)
 
-        padded_flair, crop_index, padded_index = pad_background(
-            flair, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008
-        )
-        padded_t1 = pad_background_with_index(
-            t1, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008
-        )
-        padded_t2 = pad_background_with_index(
-            t2, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008
-        )
-        padded_mask1 = pad_background_with_index(
-            mask1, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008
-        )
+        padded_flair, crop_index, padded_index = pad_background(flair, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008)
+        padded_t1 = pad_background_with_index(t1, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008)
+        padded_t2 = pad_background_with_index(t2, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008)
+        padded_mask1 = pad_background_with_index(mask1, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008)
         if "UNC" in path_flair:
-            mask2 = nib.load(
-                path_flair.replace("FLAIR_brain_bias_correction", "lesion_byCHB")
-            )
+            mask2 = nib.load(path_flair.replace("FLAIR_brain_bias_correction", "lesion_byCHB"))
             mask2 = mask2.get_fdata().astype(np.uint8)
-            padded_mask2 = pad_background_with_index(
-                mask2, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008
-            )
+            padded_mask2 = pad_background_with_index(mask2, crop_index, padded_index, dim2pad=cfg.DATA.DIM2PAD_MICCAI2008)
             data["mask2"] = padded_mask2.astype(np.int64)
 
         data["mask1"] = padded_mask1.astype(np.int64)
@@ -281,13 +233,9 @@ class MSSEG2008_Test_Loader(Dataset):
                 slices_flair = transposed_flair[..., i]  # shape (256, 256, 1)
                 slices_t1 = transposed_t1[..., i]  # shape (224, 224, 1)
                 slices_t2 = transposed_t2[..., i]  # shape (224, 224, 1)
-                slice_inputs = np.stack(
-                    [slices_t1, slices_flair, slices_t2], axis=-1
-                )  # shape (224, 224, 4)
+                slice_inputs = np.stack([slices_t1, slices_flair, slices_t2], axis=-1)  # shape (224, 224, 4)
 
-                slices_image = torch.from_numpy(
-                    slice_inputs.transpose(-1, 0, 1)
-                )  # shape (5, 256, 256)
+                slices_image = torch.from_numpy(slice_inputs.transpose(-1, 0, 1))  # shape (5, 256, 256)
 
                 batch_images.append(slices_image)
 

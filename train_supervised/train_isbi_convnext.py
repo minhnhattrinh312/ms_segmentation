@@ -33,11 +33,7 @@ if __name__ == "__main__":
         # create folder to save checkpoints
         os.makedirs(cfg.DIRS.SAVE_DIR, exist_ok=True)
         # List of subjects in test set
-        list_test_subject = sorted(
-            glob.glob(
-                f"./data/data_isbi_2015/training/*{cfg.TRAIN.FOLD}/preprocessed/*flair*"
-            )
-        )
+        list_test_subject = sorted(glob.glob(f"./data/data_isbi_2015/training/*{cfg.TRAIN.FOLD}/preprocessed/*flair*"))
 
         # List of subjects in the training set
         list_train_subject = []
@@ -77,13 +73,9 @@ if __name__ == "__main__":
 
         # define model
         model = SkipNet(in_dim=cfg.DATA.DIM_SIZE, num_class=cfg.DATA.NUM_CLASS)
-        checkpoint = torch.hub.load_state_dict_from_url(
-            url=convnext_urls["convnext_tiny_1k"], map_location="cpu", check_hash=True
-        )
+        checkpoint = torch.hub.load_state_dict_from_url(url=convnext_urls["convnext_tiny_1k"], map_location="cpu", check_hash=True)
         model.load_state_dict(checkpoint["model"], strict=False)
-        print(
-            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! load imagenet weight !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-        )
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! load imagenet weight !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
         # Initialize the segmentation model with the specified parameters
         segmenter = Segmenter(
@@ -113,9 +105,7 @@ if __name__ == "__main__":
         # Initialize a LearningRateMonitor callback to log the learning rate during training
         lr_monitor = LearningRateMonitor(logging_interval="epoch")
 
-        print(
-            f"!!!!!!!!!!!!!!!!!!!!!!!! warm up {cfg.TRAIN.EPOCH_WARMUP} epochs!!!!!!!!!!!!!!!!!!!"
-        )
+        print(f"!!!!!!!!!!!!!!!!!!!!!!!! warm up {cfg.TRAIN.EPOCH_WARMUP} epochs!!!!!!!!!!!!!!!!!!!")
         print("class_weight:", cfg.DATA.CLASS_WEIGHT)
         print("Train on fold:", cfg.TRAIN.FOLD)
         # Initialize a EarlyStopping callback to stop training if the validation loss does not improve for a certain number of epochs
@@ -162,11 +152,7 @@ if __name__ == "__main__":
         # Initialize a Trainer object with the specified parameters
         trainer = pl.Trainer(**PARAMS_TRAINER)
         # Get a list of file paths for all non-hidden files in the SAVE_DIR directory
-        checkpoint_paths = [
-            cfg.DIRS.SAVE_DIR + f
-            for f in os.listdir(cfg.DIRS.SAVE_DIR)
-            if not f.startswith(".")
-        ]
+        checkpoint_paths = [cfg.DIRS.SAVE_DIR + f for f in os.listdir(cfg.DIRS.SAVE_DIR) if not f.startswith(".")]
         checkpoint_paths.sort()
         # If there are checkpoint paths and the load_checkpoint flag is set to True
         if checkpoint_paths and cfg.TRAIN.LOAD_CHECKPOINT:

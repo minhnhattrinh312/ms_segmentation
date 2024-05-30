@@ -27,19 +27,13 @@ if __name__ == "__main__":
     i = 1
     cfg.TRAIN.FOLD = i
     print("train on fold", cfg.TRAIN.FOLD)
-    cfg.DIRS.SAVE_DIR = (
-        f"./weights_isbi2.5D_{cfg.PREDICT.MODEL}_{cfg.TRAIN.LOSS}/fold{cfg.TRAIN.FOLD}/"
-    )
+    cfg.DIRS.SAVE_DIR = f"./weights_isbi2.5D_{cfg.PREDICT.MODEL}_{cfg.TRAIN.LOSS}/fold{cfg.TRAIN.FOLD}/"
     model = FCDenseNet(in_channels=cfg.DATA.INDIM_MODEL, n_classes=cfg.DATA.NUM_CLASS)
 
     # create folder to save checkpoints
     os.makedirs(cfg.DIRS.SAVE_DIR, exist_ok=True)
     # List of subjects in test set
-    list_test_subject = sorted(
-        glob.glob(
-            f"./data/data_isbi_2015/training/*{cfg.TRAIN.FOLD}/preprocessed/*flair*"
-        )
-    )
+    list_test_subject = sorted(glob.glob(f"./data/data_isbi_2015/training/*{cfg.TRAIN.FOLD}/preprocessed/*flair*"))
 
     # List of subjects in the training set
     list_train_subject = []
@@ -145,11 +139,7 @@ if __name__ == "__main__":
     # Initialize a Trainer object with the specified parameters
     trainer = pl.Trainer(**PARAMS_TRAINER)
     # Get a list of file paths for all non-hidden files in the SAVE_DIR directory
-    checkpoint_paths = [
-        cfg.DIRS.SAVE_DIR + f
-        for f in os.listdir(cfg.DIRS.SAVE_DIR)
-        if not f.startswith(".")
-    ]
+    checkpoint_paths = [cfg.DIRS.SAVE_DIR + f for f in os.listdir(cfg.DIRS.SAVE_DIR) if not f.startswith(".")]
     checkpoint_paths.sort()
     # If there are checkpoint paths and the load_checkpoint flag is set to True
     if checkpoint_paths and cfg.TRAIN.LOAD_CHECKPOINT:

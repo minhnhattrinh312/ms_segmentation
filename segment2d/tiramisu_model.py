@@ -9,9 +9,7 @@ class DenseLayer(nn.Sequential):
         self.add_module("relu", nn.ReLU(True))
         self.add_module(
             "conv",
-            nn.Conv2d(
-                in_channels, growth_rate, kernel_size=3, stride=1, padding=1, bias=True
-            ),
+            nn.Conv2d(in_channels, growth_rate, kernel_size=3, stride=1, padding=1, bias=True),
         )
         self.add_module("drop", nn.Dropout2d(0.2))
 
@@ -23,12 +21,7 @@ class DenseBlock(nn.Module):
     def __init__(self, in_channels, growth_rate, n_layers, upsample=False):
         super().__init__()
         self.upsample = upsample
-        self.layers = nn.ModuleList(
-            [
-                DenseLayer(in_channels + i * growth_rate, growth_rate)
-                for i in range(n_layers)
-            ]
-        )
+        self.layers = nn.ModuleList([DenseLayer(in_channels + i * growth_rate, growth_rate) for i in range(n_layers)])
 
     def forward(self, x):
         if self.upsample:
@@ -54,9 +47,7 @@ class TransitionDown(nn.Sequential):
         self.add_module("relu", nn.ReLU(inplace=True))
         self.add_module(
             "conv",
-            nn.Conv2d(
-                in_channels, in_channels, kernel_size=1, stride=1, padding=0, bias=True
-            ),
+            nn.Conv2d(in_channels, in_channels, kernel_size=1, stride=1, padding=0, bias=True),
         )
         self.add_module("drop", nn.Dropout2d(0.2))
         self.add_module("maxpool", nn.MaxPool2d(2))
@@ -87,9 +78,7 @@ class TransitionUp(nn.Module):
 class Bottleneck(nn.Sequential):
     def __init__(self, in_channels, growth_rate, n_layers):
         super().__init__()
-        self.add_module(
-            "bottleneck", DenseBlock(in_channels, growth_rate, n_layers, upsample=True)
-        )
+        self.add_module("bottleneck", DenseBlock(in_channels, growth_rate, n_layers, upsample=True))
 
     def forward(self, x):
         return super().forward(x)
@@ -141,9 +130,7 @@ class FCDenseNet(nn.Module):
         self.denseBlocksDown = nn.ModuleList([])
         self.transDownBlocks = nn.ModuleList([])
         for i in range(len(down_blocks)):
-            self.denseBlocksDown.append(
-                DenseBlock(cur_channels_count, growth_rate, down_blocks[i])
-            )
+            self.denseBlocksDown.append(DenseBlock(cur_channels_count, growth_rate, down_blocks[i]))
             cur_channels_count += growth_rate * down_blocks[i]
             skip_connection_channel_counts.insert(0, cur_channels_count)
             self.transDownBlocks.append(TransitionDown(cur_channels_count))
@@ -152,9 +139,7 @@ class FCDenseNet(nn.Module):
         #     Bottleneck    #
         #####################
 
-        self.add_module(
-            "bottleneck", Bottleneck(cur_channels_count, growth_rate, bottleneck_layers)
-        )
+        self.add_module("bottleneck", Bottleneck(cur_channels_count, growth_rate, bottleneck_layers))
         prev_block_channels = growth_rate * bottleneck_layers
         cur_channels_count += prev_block_channels
 
@@ -165,27 +150,19 @@ class FCDenseNet(nn.Module):
         self.transUpBlocks = nn.ModuleList([])
         self.denseBlocksUp = nn.ModuleList([])
         for i in range(len(up_blocks) - 1):
-            self.transUpBlocks.append(
-                TransitionUp(prev_block_channels, prev_block_channels)
-            )
+            self.transUpBlocks.append(TransitionUp(prev_block_channels, prev_block_channels))
             cur_channels_count = prev_block_channels + skip_connection_channel_counts[i]
 
-            self.denseBlocksUp.append(
-                DenseBlock(cur_channels_count, growth_rate, up_blocks[i], upsample=True)
-            )
+            self.denseBlocksUp.append(DenseBlock(cur_channels_count, growth_rate, up_blocks[i], upsample=True))
             prev_block_channels = growth_rate * up_blocks[i]
             cur_channels_count += prev_block_channels
 
         ## Final DenseBlock ##
 
-        self.transUpBlocks.append(
-            TransitionUp(prev_block_channels, prev_block_channels)
-        )
+        self.transUpBlocks.append(TransitionUp(prev_block_channels, prev_block_channels))
         cur_channels_count = prev_block_channels + skip_connection_channel_counts[-1]
 
-        self.denseBlocksUp.append(
-            DenseBlock(cur_channels_count, growth_rate, up_blocks[-1], upsample=False)
-        )
+        self.denseBlocksUp.append(DenseBlock(cur_channels_count, growth_rate, up_blocks[-1], upsample=False))
         cur_channels_count += growth_rate * up_blocks[-1]
 
         ## Softmax ##

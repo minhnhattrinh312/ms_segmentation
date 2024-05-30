@@ -48,9 +48,7 @@ class ISBILoader(Dataset):
     def __getitem__(self, idx):
         subject = np.load(self.listName[idx])
         try:
-            volume, mask = torch.from_numpy(subject["image"]), torch.from_numpy(
-                subject["mask"]
-            )
+            volume, mask = torch.from_numpy(subject["image"]), torch.from_numpy(subject["mask"])
         except:
             print(self.listName[idx])
         # volume, mask = torch.from_numpy(subject["image"]), torch.from_numpy(subject["mask"])
@@ -65,9 +63,6 @@ class ISBILoader(Dataset):
                 self.extraction_step * torch.randint(5, (1,)),
                 self.extraction_step * torch.randint(3, (1,)),
             )
-            valid_index = (slice(None),) + tuple(
-                slice(start_index, start_index + self.patch_size)
-                for start_index in start_indexes
-            )
+            valid_index = (slice(None),) + tuple(slice(start_index, start_index + self.patch_size) for start_index in start_indexes)
             volume, mask = volume[valid_index], mask[valid_index]
         return volume, mask

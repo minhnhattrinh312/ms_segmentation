@@ -35,8 +35,8 @@ class Segmenter(pl.LightningModule):
         super().__init__()
         self.model = model
         # torch 2.3 => compile to make faster
-        self.model  = torch.compile(self.model, mode="reduce-overhead")
-        
+        self.model = torch.compile(self.model, mode="reduce-overhead")
+
         self.class_weight = class_weight
         self.num_classes = num_classes
         self.learning_rate = learning_rate
@@ -55,13 +55,9 @@ class Segmenter(pl.LightningModule):
 
     def on_train_start(self):
         if cfg.TRAIN.LOSS == "active_focal":
-            self.training_loss = ActiveFocalLoss(
-                self.device, self.class_weight, self.num_classes
-            )
+            self.training_loss = ActiveFocalLoss(self.device, self.class_weight, self.num_classes)
         elif cfg.TRAIN.LOSS == "active_contour":
-            self.training_loss = ActiveContourLoss(
-                self.device, self.class_weight, self.num_classes
-            )
+            self.training_loss = ActiveContourLoss(self.device, self.class_weight, self.num_classes)
         elif cfg.TRAIN.LOSS == "CrossEntropy":
             self.training_loss = CrossEntropy(self.device, self.num_classes)
         elif cfg.TRAIN.LOSS == "DiceLoss":
@@ -71,9 +67,7 @@ class Segmenter(pl.LightningModule):
         elif cfg.TRAIN.LOSS == "MSELoss":
             self.training_loss = MSELoss(self.device, self.num_classes)
         else:
-            self.training_loss = ActiveFocalContourLoss(
-                self.device, self.class_weight, self.num_classes
-            )
+            self.training_loss = ActiveFocalContourLoss(self.device, self.class_weight, self.num_classes)
 
     def forward(self, x):
         # return self.model(self.normalize(x))
@@ -131,26 +125,18 @@ class Segmenter(pl.LightningModule):
         for view, convert_view in zip(views, cfg.DATA.CUT2ORIGIN):
             output_cur_view = np.zeros((*cfg.DATA.DIM2PAD_ISBI, self.num_classes))
 
-            probability_output = self.predict_patches(
-                batch[view]
-            )  # shape (n, 2, 224, 224)
-            probability_output = probability_output.transpose(
-                2, 3, 0, 1
-            )  # shape (224, 224, n, 2)
+            probability_output = self.predict_patches(batch[view])  # shape (n, 2, 224, 224)
+            probability_output = probability_output.transpose(2, 3, 0, 1)  # shape (224, 224, n, 2)
             output_cur_view = probability_output
             convert_view = convert_view + (-1,)
-            output_cur_view_trans = np.transpose(
-                output_cur_view, convert_view
-            )  # convert to original view
+            output_cur_view_trans = np.transpose(output_cur_view, convert_view)  # convert to original view
             seg += output_cur_view_trans
 
         seg = np.argmax(seg, axis=-1).astype(np.uint8)
         metrics_mask1 = seg_metrics(batch["mask1"], seg)
         metrics_mask2 = seg_metrics(batch["mask2"], seg)
         metrics = {
-            "batch_score_val": np.sum(
-                [metrics_mask1["isbi_score"], metrics_mask2["isbi_score"]]
-            ),
+            "batch_score_val": np.sum([metrics_mask1["isbi_score"], metrics_mask2["isbi_score"]]),
             "batch_dice_val": np.sum([metrics_mask1["dice"], metrics_mask2["dice"]]),
         }
         return metrics
@@ -163,24 +149,16 @@ class Segmenter(pl.LightningModule):
 
         for view, convert_view in zip(views, cfg.DATA.CUT2ORIGIN):
             output_cur_view = np.zeros((*cfg.DATA.DIM2PAD_MICCAI, self.num_classes))
-            probability_output = self.predict_patches(
-                batch[view]
-            )  # shape (n, 2, 224, 224)
-            probability_output = probability_output.transpose(
-                2, 3, 0, 1
-            )  # shape (224, 224, n, 2)
+            probability_output = self.predict_patches(batch[view])  # shape (n, 2, 224, 224)
+            probability_output = probability_output.transpose(2, 3, 0, 1)  # shape (224, 224, n, 2)
             output_cur_view = probability_output
             convert_view = convert_view + (-1,)
-            output_cur_view_trans = np.transpose(
-                output_cur_view, convert_view
-            )  # convert to original view
+            output_cur_view_trans = np.transpose(output_cur_view, convert_view)  # convert to original view
             seg += output_cur_view_trans
 
         seg = np.argmax(seg, axis=-1).astype(np.uint8)
         seg = remove_small_elements(seg, min_size_remove=cfg.PREDICT.MIN_SIZE_REMOVE)
-        inverted_image = invert_padding(
-            batch["consensus"], seg, batch["crop_index"], batch["padded_index"]
-        )
+        inverted_image = invert_padding(batch["consensus"], seg, batch["crop_index"], batch["padded_index"])
         metrics_mask = seg_metrics(batch["consensus"], inverted_image)
         metrics = {
             "batch_score_val": metrics_mask["isbi_score"],
@@ -201,17 +179,11 @@ class Segmenter(pl.LightningModule):
 
         for view, convert_view in zip(views, cfg.DATA.CUT2ORIGIN):
             output_cur_view = np.zeros((*cfg.DATA.DIM2PAD_MICCAI2008, self.num_classes))
-            probability_output = self.predict_patches(
-                batch[view]
-            )  # shape (n, 2, 224, 224)
-            probability_output = probability_output.transpose(
-                2, 3, 0, 1
-            )  # shape (224, 224, n, 2)
+            probability_output = self.predict_patches(batch[view])  # shape (n, 2, 224, 224)
+            probability_output = probability_output.transpose(2, 3, 0, 1)  # shape (224, 224, n, 2)
             output_cur_view = probability_output
             convert_view = convert_view + (-1,)
-            output_cur_view_trans = np.transpose(
-                output_cur_view, convert_view
-            )  # convert to original view
+            output_cur_view_trans = np.transpose(output_cur_view, convert_view)  # convert to original view
             seg += output_cur_view_trans
 
         seg = np.argmax(seg, axis=-1).astype(np.uint8)
@@ -227,9 +199,7 @@ class Segmenter(pl.LightningModule):
         if "mask2" in batch:
             metrics_mask2 = seg_metrics_miccai2008(batch["mask1"], seg)
             metrics = {
-                "batch_score_val": np.mean(
-                    [metrics_mask1["score"], metrics_mask2["score"]]
-                ),
+                "batch_score_val": np.mean([metrics_mask1["score"], metrics_mask2["score"]]),
                 "batch_tpr_val": np.mean([metrics_mask1["tpr"], metrics_mask2["tpr"]]),
                 "batch_fpr_val": np.mean([metrics_mask1["fpr"], metrics_mask2["fpr"]]),
                 "batch_vd_val": np.mean([metrics_mask1["vd"], metrics_mask2["vd"]]),
@@ -253,41 +223,17 @@ class Segmenter(pl.LightningModule):
 
     def on_validation_epoch_end(self):
         if cfg.TRAIN.TASK == "isbi":
-            avg_score = (
-                np.stack(
-                    [x["batch_score_val"] for x in self.validation_step_outputs]
-                ).mean()
-                / 2
-            )
-            avg_dice = (
-                np.stack(
-                    [x["batch_dice_val"] for x in self.validation_step_outputs]
-                ).mean()
-                / 2
-            )
+            avg_score = np.stack([x["batch_score_val"] for x in self.validation_step_outputs]).mean() / 2
+            avg_dice = np.stack([x["batch_dice_val"] for x in self.validation_step_outputs]).mean() / 2
             metrics = {"val_score": avg_score, "val_dice": avg_dice}
         elif cfg.TRAIN.TASK == "msseg":
-            avg_score = np.stack(
-                [x["batch_score_val"] for x in self.validation_step_outputs]
-            ).mean()
-            avg_dice = np.stack(
-                [x["batch_dice_val"] for x in self.validation_step_outputs]
-            ).mean()
-            avg_ppv = np.stack(
-                [x["batch_ppv_val"] for x in self.validation_step_outputs]
-            ).mean()
-            avg_tpr = np.stack(
-                [x["batch_tpr_val"] for x in self.validation_step_outputs]
-            ).mean()
-            avg_lfpr = np.stack(
-                [x["batch_lfpr_val"] for x in self.validation_step_outputs]
-            ).mean()
-            avg_ltpr = np.stack(
-                [x["batch_ltpr_val"] for x in self.validation_step_outputs]
-            ).mean()
-            avg_vd = np.stack(
-                [x["batch_vd_val"] for x in self.validation_step_outputs]
-            ).mean()
+            avg_score = np.stack([x["batch_score_val"] for x in self.validation_step_outputs]).mean()
+            avg_dice = np.stack([x["batch_dice_val"] for x in self.validation_step_outputs]).mean()
+            avg_ppv = np.stack([x["batch_ppv_val"] for x in self.validation_step_outputs]).mean()
+            avg_tpr = np.stack([x["batch_tpr_val"] for x in self.validation_step_outputs]).mean()
+            avg_lfpr = np.stack([x["batch_lfpr_val"] for x in self.validation_step_outputs]).mean()
+            avg_ltpr = np.stack([x["batch_ltpr_val"] for x in self.validation_step_outputs]).mean()
+            avg_vd = np.stack([x["batch_vd_val"] for x in self.validation_step_outputs]).mean()
             metrics = {
                 "test_score": avg_score,
                 "test_dice": avg_dice,
@@ -298,18 +244,10 @@ class Segmenter(pl.LightningModule):
                 "test_vd": avg_vd,
             }
         else:  # for mseeg2008
-            avg_score = np.stack(
-                [x["batch_score_val"] for x in self.validation_step_outputs]
-            ).mean()
-            avg_tpr = np.stack(
-                [x["batch_tpr_val"] for x in self.validation_step_outputs]
-            ).mean()
-            avg_fpr = np.stack(
-                [x["batch_fpr_val"] for x in self.validation_step_outputs]
-            ).mean()
-            avg_vd = np.stack(
-                [x["batch_vd_val"] for x in self.validation_step_outputs]
-            ).mean()
+            avg_score = np.stack([x["batch_score_val"] for x in self.validation_step_outputs]).mean()
+            avg_tpr = np.stack([x["batch_tpr_val"] for x in self.validation_step_outputs]).mean()
+            avg_fpr = np.stack([x["batch_fpr_val"] for x in self.validation_step_outputs]).mean()
+            avg_vd = np.stack([x["batch_vd_val"] for x in self.validation_step_outputs]).mean()
             metrics = {
                 "val_score": avg_score,
                 "val_tpr": avg_tpr,
@@ -329,28 +267,18 @@ class Segmenter(pl.LightningModule):
             for view, convert_view in zip(views, cfg.DATA.CUT2ORIGIN):
                 output_cur_view = np.zeros((*cfg.DATA.DIM2PAD_MICCAI, self.num_classes))
 
-                probability_output = self.predict_patches(
-                    batch[view]
-                )  # shape (n, 2, 224, 224)
-                probability_output = probability_output.transpose(
-                    2, 3, 0, 1
-                )  # shape (224, 224, n, 2)
+                probability_output = self.predict_patches(batch[view])  # shape (n, 2, 224, 224)
+                probability_output = probability_output.transpose(2, 3, 0, 1)  # shape (224, 224, n, 2)
                 output_cur_view = probability_output
                 convert_view = convert_view + (-1,)
-                output_cur_view_trans = np.transpose(
-                    output_cur_view, convert_view
-                )  # convert to original view
+                output_cur_view_trans = np.transpose(output_cur_view, convert_view)  # convert to original view
                 seg += output_cur_view_trans
                 # break
 
             seg = np.argmax(seg, axis=-1).astype(np.uint8)
-            seg = remove_small_elements(
-                seg, min_size_remove=cfg.PREDICT.MIN_SIZE_REMOVE
-            )
+            seg = remove_small_elements(seg, min_size_remove=cfg.PREDICT.MIN_SIZE_REMOVE)
             # print(np.sum(seg))
-            inverted_image = invert_padding(
-                batch["consensus"], seg, batch["crop_index"], batch["padded_index"]
-            )
+            inverted_image = invert_padding(batch["consensus"], seg, batch["crop_index"], batch["padded_index"])
             metrics_mask = seg_metrics(batch["consensus"], inverted_image)
             metrics = {
                 "batch_score_val": metrics_mask["isbi_score"],
@@ -387,9 +315,7 @@ class Segmenter(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = timm.optim.Nadam(self.parameters(), lr=self.learning_rate)
-        scheduler = ReduceLROnPlateau(
-            optimizer, mode="max", factor=self.factor_lr, patience=self.patience_lr
-        )
+        scheduler = ReduceLROnPlateau(optimizer, mode="max", factor=self.factor_lr, patience=self.patience_lr)
         if cfg.TRAIN.TASK == "isbi":
             lr_schedulers = {
                 "scheduler": scheduler,

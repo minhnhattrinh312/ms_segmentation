@@ -25,21 +25,14 @@ class ActiveFocalContourLoss(nn.Module):
         yTrueOnehot = torch.scatter(yTrueOnehot, 1, y_true, 1)
         y_pred = torch.clamp(y_pred, min=1e-5, max=1 - 1e-5)
 
-        active_focal = -yTrueOnehot * (1 + (1 - y_pred) ** self.gamma) * torch.log(
-            y_pred
-        ) - (1 - yTrueOnehot) * (1 + y_pred**self.gamma) * torch.log(1 - y_pred)
+        active_focal = -yTrueOnehot * (1 + (1 - y_pred) ** self.gamma) * torch.log(y_pred) - (1 - yTrueOnehot) * (1 + y_pred**self.gamma) * torch.log(1 - y_pred)
         active_focal = torch.sum(active_focal, dim=[2, 3]) * self.class_weight
 
         active_contour = yTrueOnehot * (1 - y_pred) + (1 - yTrueOnehot) * y_pred
         active_contour = torch.sum(active_contour, dim=[2, 3]) * self.class_weight
 
         loss = torch.sum(active_focal) + torch.sum(active_contour)
-        return loss / (
-            torch.sum(self.class_weight)
-            * y_true.size(0)
-            * y_true.size(2)
-            * y_true.size(3)
-        )
+        return loss / (torch.sum(self.class_weight) * y_true.size(0) * y_true.size(2) * y_true.size(3))
 
 
 class ActiveContourLoss(nn.Module):
@@ -69,12 +62,7 @@ class ActiveContourLoss(nn.Module):
         active_contour = torch.sum(active_contour, dim=[2, 3]) * self.class_weight
 
         loss = torch.sum(active_contour)
-        return loss / (
-            torch.sum(self.class_weight)
-            * y_true.size(0)
-            * y_true.size(2)
-            * y_true.size(3)
-        )
+        return loss / (torch.sum(self.class_weight) * y_true.size(0) * y_true.size(2) * y_true.size(3))
 
 
 class ActiveFocalLoss(nn.Module):
@@ -100,18 +88,11 @@ class ActiveFocalLoss(nn.Module):
         yTrueOnehot = torch.scatter(yTrueOnehot, 1, y_true, 1)
         y_pred = torch.clamp(y_pred, min=1e-5, max=1 - 1e-5)
 
-        active_focal = -yTrueOnehot * (1 + (1 - y_pred) ** self.gamma) * torch.log(
-            y_pred
-        ) - (1 - yTrueOnehot) * (1 + y_pred**self.gamma) * torch.log(1 - y_pred)
+        active_focal = -yTrueOnehot * (1 + (1 - y_pred) ** self.gamma) * torch.log(y_pred) - (1 - yTrueOnehot) * (1 + y_pred**self.gamma) * torch.log(1 - y_pred)
         active_focal = torch.sum(active_focal, dim=[2, 3]) * self.class_weight
 
         loss = torch.sum(active_focal)
-        return loss / (
-            torch.sum(self.class_weight)
-            * y_true.size(0)
-            * y_true.size(2)
-            * y_true.size(3)
-        )
+        return loss / (torch.sum(self.class_weight) * y_true.size(0) * y_true.size(2) * y_true.size(3))
 
 
 class CrossEntropy(nn.Module):
@@ -181,9 +162,7 @@ class TverskyLoss(nn.Module):
         TP = torch.sum(yTrueOnehot * y_pred, dim=[1, 2, 3])
         FN = torch.sum(yTrueOnehot * (1 - y_pred), dim=[1, 2, 3])
         FP = torch.sum((1 - yTrueOnehot) * y_pred, dim=[1, 2, 3])
-        loss = 1 - torch.mean(
-            (TP + 1e-5) / (TP + self.alpha * FN + (1 - self.alpha) * FP + 1e-5)
-        )
+        loss = 1 - torch.mean((TP + 1e-5) / (TP + self.alpha * FN + (1 - self.alpha) * FP + 1e-5))
         return loss
 
 

@@ -25,14 +25,6 @@ class ActiveFocalLoss(nn.Module):
         yTrueOnehot = torch.scatter(yTrueOnehot, 1, y_true, 1)
         y_pred = torch.clamp(y_pred, min=1e-5, max=1 - 1e-5)
 
-        active_focal = -yTrueOnehot * (1 - y_pred) ** self.gamma * torch.log(y_pred) - (
-            1 - yTrueOnehot
-        ) * y_pred**self.gamma * torch.log(1 - y_pred)
+        active_focal = -yTrueOnehot * (1 - y_pred) ** self.gamma * torch.log(y_pred) - (1 - yTrueOnehot) * y_pred**self.gamma * torch.log(1 - y_pred)
         loss = torch.sum(active_focal, dim=[2, 3, 4]) * self.class_weight
-        return torch.sum(loss) / (
-            torch.sum(self.class_weight)
-            * y_true.size(0)
-            * y_true.size(2)
-            * y_true.size(3)
-            * y_true.size(4)
-        )
+        return torch.sum(loss) / (torch.sum(self.class_weight) * y_true.size(0) * y_true.size(2) * y_true.size(3) * y_true.size(4))
